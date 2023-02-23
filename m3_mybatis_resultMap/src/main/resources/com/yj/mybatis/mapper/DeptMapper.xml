@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//OTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.yj.mybatis.mapper.DeptMapper">
+
+    <!--Dept getEmpAndDeptByStepTow(@Param("deptId") Integer deptId);-->
+    <select id="getEmpAndDeptByStepTow" resultType="Dept">
+        select * from t_dept where dept_id = #{deptId}
+    </select>
+
+
+    <!--
+        处理一对多的映射关系
+            1. collection
+            2. 分步查询
+    -->
+    <resultMap id="deptAndEmpResultMap" type="Dept">
+        <id column="dept_id" property="deptId"></id>
+        <result column="dept_name" property="deptName"></result>
+        <!--
+            ofType:设置 property对应的属性 中存储的数据类型
+        -->
+        <collection property="emps" ofType="Emp">
+            <id column="emp_id" property="empId"></id>
+            <result column="emp_name" property="empName"></result>
+            <result column="age" property="age"></result>
+            <result column="gender" property="gender"></result>
+        </collection>
+    </resultMap>
+
+    <!--Dept getDeptAndEmpByDeptId(@Param("deptId") Integer deptId);-->
+    <select id="getDeptAndEmpByDeptId" resultMap="deptAndEmpResultMap">
+        select t_dept.*, t_emp.*
+        from t_dept
+                 left join t_emp
+                           on t_emp.dept_id = t_dept.dept_id
+        where t_dept.dept_id = #{deptId}
+    </select>
+
+
+    <resultMap id="deptAndEmpByStepResultMap" type="Dept">
+        <id column="dept_id" property="deptId"></id>
+        <result column="dept_name" property="deptName"></result>
+        <collection property="emps"
+                    select="com.yj.mybatis.mapper.EmpMapper.getDeptAndEmpByStepTow"
+                    column="dept_id">
+        </collection>
+    </resultMap>
+
+<!--    Dept getDeptAndEmpByStepOne(@Param("deptId") Integer deptId);-->
+    <select id="getDeptAndEmpByStepOne" resultMap="deptAndEmpByStepResultMap">
+        select * from t_dept where dept_id = #{deptId}
+    </select>
+
+</mapper>
